@@ -1,0 +1,80 @@
+{
+  "name": "meetscribe",
+  "version": "1.0.0",
+  "description": "Local meeting transcription and notes app for macOS",
+  "main": "dist/main/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && electron .",
+    "dev": "tsc && electron .",
+    "package": "npm run build && electron-builder --mac --publish never",
+    "package:dmg": "npm run build && electron-builder --mac dmg --publish never",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "author": "Cou",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/meetscribe.git"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.8",
+    "@types/node": "^20.10.0",
+    "electron": "^33.0.0",
+    "electron-builder": "^24.9.1",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.0",
+    "@deepgram/sdk": "^3.9.0",
+    "better-sqlite3": "^11.6.0",
+    "electron-audio-loopback": "^1.0.3"
+  },
+  "build": {
+    "appId": "com.meetscribe.app",
+    "productName": "MeetScribe",
+    "directories": {
+      "output": "release"
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["universal"]
+        }
+      ],
+      "icon": "build/icon.icns",
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "MeetScribe needs microphone access to transcribe your voice in meetings.",
+        "NSScreenCaptureUsageDescription": "MeetScribe needs screen recording permission to capture meeting audio."
+      }
+    },
+    "dmg": {
+      "title": "MeetScribe",
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "files": [
+      "dist/**/*",
+      "public/**/*"
+    ],
+    "asarUnpack": [
+      "node_modules/better-sqlite3/**/*"
+    ]
+  }
+}

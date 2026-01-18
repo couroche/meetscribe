@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; media-src 'self' blob:;">
+  <title>MeetScribe</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-tertiary: #1a1a25;
+      --bg-elevated: #22222f;
+      --text-primary: #f0f0f5;
+      --text-secondary: #9090a0;
+      --text-muted: #606070;
+      --accent-primary: #6366f1;
+      --accent-secondary: #818cf8;
+      --accent-glow: rgba(99, 102, 241, 0.3);
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --border: rgba(255, 255, 255, 0.06);
+      --user-color: #6366f1;
+      --other-color: #22c55e;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    /* App Layout */
+    .app {
+      display: flex;
+      height: 100vh;
+      padding-top: 38px; /* Space for macOS traffic lights */
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      min-width: 280px;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      -webkit-app-region: drag;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      -webkit-app-region: no-drag;
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .meeting-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      -webkit-app-region: no-drag;
+    }
+
+    .meeting-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .meeting-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .meeting-list::-webkit-scrollbar-thumb {
+      background: var(--bg-elevated);
+      border-radius: 3px;
+    }
+
+    .meeting-item {
+      padding: 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-bottom: 6px;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }
+
+    .meeting-item:hover {
+      background: var(--bg-tertiary);
+    }
+
+    .meeting-item.active {
+      background: var(--bg-tertiary);
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .meeting-item-title {
+      font-weight: 500;
+      margin-bottom: 4px;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .meeting-item-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 12px;
+    }
+
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid var(--border);
+      -webkit-app-region: no-drag;
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .main-header {
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      -webkit-app-region: drag;
+    }
+
+    .main-header > * {
+      -webkit-app-region: no-drag;
+    }
+
+    .main-title {
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-elevated);
+    }
+
+    .btn-danger {
+      background: var(--error);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-icon {
+      padding: 10px;
+      min-width: 40px;
+    }
+
+    .btn-record {
+      background: var(--error);
+      animation: pulse 2s infinite;
+    }
+
+    .btn-record.recording {
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    }
+
+    /* Content Area */
+    .content-area {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Transcript Panel */
+    .transcript-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .transcript-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 28px;
+    }
+
+    .transcript-scroll::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .transcript-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .transcript-scroll::-webkit-scrollbar-thumb {
+      background: var(--bg-elevated);
+      border-radius: 4px;
+    }
+
+    .transcript-segment {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 14px;
+    }
+
+    .segment-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .segment-avatar.user {
+      background: linear-gradient(135deg, var(--user-color), #8b5cf6);
+    }
+
+    .segment-avatar.other {
+      background: linear-gradient(135deg, var(--other-color), #10b981);
+    }
+
+    .segment-content {
+      flex: 1;
+    }
+
+    .segment-header {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .segment-speaker {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .segment-speaker.user {
+      color: var(--user-color);
+    }
+
+    .segment-speaker.other {
+      color: var(--other-color);
+    }
+
+    .segment-time {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .segment-text {
+      color: var(--text-secondary);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    /* Summary Panel */
+    .summary-panel {
+      width: 380px;
+      min-width: 380px;
+      border-left: 1px solid var(--border);
+      background: var(--bg-secondary);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .summary-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .summary-title {
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .summary-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .summary-content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .summary-content::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .summary-content::-webkit-scrollbar-thumb {
+      background: var(--bg-elevated);
+      border-radius: 3px;
+    }
+
+    .summary-text {
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .summary-text h2 {
+      color: var(--text-primary);
+      font-size: 15px;
+      font-weight: 600;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+
+    .summary-text h2:first-child {
+      margin-top: 0;
+    }
+
+    .summary-text ul {
+      padding-left: 20px;
+    }
+
+    .summary-text li {
+      margin-bottom: 6px;
+    }
+
+    /* Empty State */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    .empty-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .empty-text {
+      color: var(--text-muted);
+      font-size: 14px;
+      max-width: 300px;
+    }
+
+    /* Recording Banner */
+    .recording-banner {
+      background: linear-gradient(90deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+      border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+      padding: 12px 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      display: none;
+    }
+
+    .recording-banner.active {
+      display: flex;
+    }
+
+    .recording-dot {
+      width: 10px;
+      height: 10px;
+      background: var(--error);
+      border-radius: 50%;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .recording-text {
+      flex: 1;
+      font-size: 14px;
+      color: var(--error);
+      font-weight: 500;
+    }
+
+    .recording-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* Settings Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.2s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      width: 500px;
+      max-height: 80vh;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      transform: scale(0.95);
+      transition: transform 0.2s ease;
+    }
+
+    .modal-overlay.active .modal {
+      transform: scale(1);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: none;
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-close:hover {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      max-height: calc(80vh - 140px);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .form-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* Meeting Detection Alert */
+    .detection-alert {
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--accent-primary);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      z-index: 100;
+      transform: translateX(120%);
+      transition: transform 0.3s ease;
+    }
+
+    .detection-alert.active {
+      transform: translateX(0);
+    }
+
+    .detection-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .detection-content {
+      flex: 1;
+    }
+
+    .detection-title {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .detection-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* Status indicators */
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    .status-dot.success { background: var(--success); }
+    .status-dot.warning { background: var(--warning); }
+    .status-dot.error { background: var(--error); }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      background: var(--bg-tertiary);
+      border-radius: 10px;
+    }
+
+    .tab {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.15s ease;
+    }
+
+    .tab:hover {
+      color: var(--text-primary);
+    }
+
+    .tab.active {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+    }
+
+    /* Live indicator */
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      background: rgba(239, 68, 68, 0.15);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--error);
+    }
+
+    .live-indicator .dot {
+      width: 6px;
+      height: 6px;
+      background: var(--error);
+      border-radius: 50%;
+      animation: blink 1s infinite;
+    }
+
+    /* Interim text styling */
+    .segment-text.interim {
+      opacity: 0.6;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">📝</div>
+          <span>MeetScribe</span>
+        </div>
+      </div>
+      
+      <div class="meeting-list" id="meetingList">
+        <!-- Meetings will be populated here -->
+      </div>
+      
+      <div class="sidebar-footer">
+        <button class="btn btn-secondary" style="width: 100%;" onclick="openSettings()">
+          ⚙️ Settings
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="main-header">
+        <h1 class="main-title" id="mainTitle">Welcome to MeetScribe</h1>
+        <div class="header-actions">
+          <button class="btn btn-primary" id="recordBtn" onclick="toggleRecording()">
+            <span id="recordIcon">⏺</span>
+            <span id="recordText">Start Recording</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Recording Banner -->
+      <div class="recording-banner" id="recordingBanner">
+        <div class="recording-dot"></div>
+        <span class="recording-text">Recording in progress...</span>
+        <span class="recording-time" id="recordingTime">00:00</span>
+      </div>
+
+      <!-- Content Area -->
+      <div class="content-area" id="contentArea">
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">🎙️</div>
+          <h2 class="empty-title">No meeting selected</h2>
+          <p class="empty-text">Start a new recording or select a past meeting from the sidebar to view its transcript.</p>
+        </div>
+
+        <!-- Transcript Panel (hidden by default) -->
+        <div class="transcript-panel" id="transcriptPanel" style="display: none;">
+          <div class="transcript-scroll" id="transcriptScroll">
+            <!-- Transcript segments will be populated here -->
+          </div>
+        </div>
+
+        <!-- Summary Panel (hidden by default) -->
+        <div class="summary-panel" id="summaryPanel" style="display: none;">
+          <div class="summary-header">
+            <span class="summary-title">Meeting Summary</span>
+            <button class="btn btn-secondary btn-icon" onclick="regenerateSummary()" title="Regenerate Summary">
+              🔄
+            </button>
+          </div>
+          <div class="summary-content">
+            <div class="summary-text" id="summaryText">
+              <!-- Summary will be populated here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Meeting Detection Alert -->
+  <div class="detection-alert" id="detectionAlert">
+    <div class="detection-icon">📞</div>
+    <div class="detection-content">
+      <div class="detection-title">Meeting Detected</div>
+      <div class="detection-text" id="detectionText">Zoom meeting in progress</div>
+    </div>
+    <button class="btn btn-primary btn-icon" onclick="startFromDetection()">⏺</button>
+    <button class="btn btn-secondary btn-icon" onclick="dismissDetection()">✕</button>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Settings</h2>
+        <button class="modal-close" onclick="closeSettings()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Deepgram API Key</label>
+          <input type="password" class="form-input" id="deepgramKey" placeholder="Enter your Deepgram API key">
+          <p class="form-hint">Required for real-time transcription. Get a key at <a href="https://console.deepgram.com" target="_blank" style="color: var(--accent-primary);">console.deepgram.com</a></p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Anthropic API Key (Optional)</label>
+          <input type="password" class="form-input" id="anthropicKey" placeholder="Enter your Anthropic API key">
+          <p class="form-hint">Used for AI-generated meeting summaries. Get a key at <a href="https://console.anthropic.com" target="_blank" style="color: var(--accent-primary);">console.anthropic.com</a></p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Permissions Status</label>
+          <div id="permissionsStatus" style="font-size: 14px; color: var(--text-secondary);">
+            Checking permissions...
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeSettings()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let currentMeetingId = null;
+    let isRecording = false;
+    let recordingStartTime = null;
+    let recordingTimer = null;
+    let detectedApp = null;
+    let audioContext = null;
+    let mediaStream = null;
+    let processor = null;
+
+    // Initialize
+    async function init() {
+      await loadMeetings();
+      await checkRecordingStatus();
+      setupEventListeners();
+      checkPermissions();
+    }
+
+    // Load meetings list
+    async function loadMeetings() {
+      const meetings = await window.electronAPI.getMeetings();
+      const listEl = document.getElementById('meetingList');
+      
+      if (meetings.length === 0) {
+        listEl.innerHTML = '<p style="color: var(--text-muted); padding: 20px; text-align: center; font-size: 14px;">No meetings yet</p>';
+        return;
+      }
+
+      listEl.innerHTML = meetings.map(m => {
+        const date = new Date(m.startedAt);
+        const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        const duration = m.duration ? `${m.duration} min` : 'In progress';
+        
+        return `
+          <div class="meeting-item ${m.id === currentMeetingId ? 'active' : ''}" 
+               onclick="selectMeeting(${m.id})"
+               data-id="${m.id}">
+            <div class="meeting-item-title">${escapeHtml(m.title)}</div>
+            <div class="meeting-item-meta">
+              <span>${dateStr} ${timeStr}</span>
+              <span>${duration}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Select a meeting
+    async function selectMeeting(meetingId) {
+      currentMeetingId = meetingId;
+      
+      // Update sidebar selection
+      document.querySelectorAll('.meeting-item').forEach(el => {
+        el.classList.toggle('active', parseInt(el.dataset.id) === meetingId);
+      });
+
+      // Load meeting data
+      const { meeting, transcript } = await window.electronAPI.getMeeting(meetingId);
+      
+      if (!meeting) return;
+
+      // Update header
+      document.getElementById('mainTitle').textContent = meeting.title;
+
+      // Show panels
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('transcriptPanel').style.display = 'flex';
+      document.getElementById('summaryPanel').style.display = 'flex';
+
+      // Render transcript
+      renderTranscript(transcript);
+
+      // Render summary
+      const summaryEl = document.getElementById('summaryText');
+      if (meeting.summary) {
+        summaryEl.innerHTML = formatMarkdown(meeting.summary);
+      } else {
+        summaryEl.innerHTML = '<p style="color: var(--text-muted); font-style: italic;">No summary available. Click regenerate to create one.</p>';
+      }
+    }
+
+    // Render transcript segments
+    function renderTranscript(segments) {
+      const scrollEl = document.getElementById('transcriptScroll');
+      
+      if (segments.length === 0) {
+        scrollEl.innerHTML = '<p style="color: var(--text-muted); padding: 20px; text-align: center;">No transcript available</p>';
+        return;
+      }
+
+      scrollEl.innerHTML = segments.map(seg => {
+        const minutes = Math.floor(seg.timestamp / 60000);
+        const seconds = Math.floor((seg.timestamp % 60000) / 1000);
+        const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        const isUser = seg.isUser || seg.speaker === 'You';
+        const initial = seg.speaker.charAt(0).toUpperCase();
+
+        return `
+          <div class="transcript-segment" data-id="${seg.id || ''}">
+            <div class="segment-avatar ${isUser ? 'user' : 'other'}">${initial}</div>
+            <div class="segment-content">
+              <div class="segment-header">
+                <span class="segment-speaker ${isUser ? 'user' : 'other'}">${escapeHtml(seg.speaker)}</span>
+                <span class="segment-time">${timeStr}</span>
+              </div>
+              <div class="segment-text">${escapeHtml(seg.text)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Add new transcript segment (live)
+    function addTranscriptSegment(segment) {
+      const scrollEl = document.getElementById('transcriptScroll');
+      const emptyMsg = scrollEl.querySelector('p');
+      if (emptyMsg) emptyMsg.remove();
+
+      const minutes = Math.floor(segment.timestamp / 60000);
+      const seconds = Math.floor((segment.timestamp % 60000) / 1000);
+      const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      const isUser = segment.isUser || segment.speaker === 'You';
+      const initial = segment.speaker.charAt(0).toUpperCase();
+
+      // Check if this is an update to existing interim result
+      const existingInterim = scrollEl.querySelector('.segment-text.interim');
+      if (existingInterim && !segment.id) {
+        existingInterim.textContent = segment.text;
+        scrollEl.scrollTop = scrollEl.scrollHeight;
+        return;
+      }
+
+      // Remove interim if this is final
+      if (existingInterim && segment.id) {
+        existingInterim.closest('.transcript-segment').remove();
+      }
+
+      const html = `
+        <div class="transcript-segment" data-id="${segment.id || ''}">
+          <div class="segment-avatar ${isUser ? 'user' : 'other'}">${initial}</div>
+          <div class="segment-content">
+            <div class="segment-header">
+              <span class="segment-speaker ${isUser ? 'user' : 'other'}">${escapeHtml(segment.speaker)}</span>
+              <span class="segment-time">${timeStr}</span>
+            </div>
+            <div class="segment-text ${segment.id ? '' : 'interim'}">${escapeHtml(segment.text)}</div>
+          </div>
+        </div>
+      `;
+
+      scrollEl.insertAdjacentHTML('beforeend', html);
+      scrollEl.scrollTop = scrollEl.scrollHeight;
+    }
+
+    // Toggle recording
+    async function toggleRecording() {
+      if (isRecording) {
+        await stopRecording();
+      } else {
+        const title = prompt('Enter meeting title:', 'Meeting ' + new Date().toLocaleString());
+        if (title) {
+          await startRecording(title);
+        }
+      }
+    }
+
+    // Start recording
+    async function startRecording(title) {
+      const meetingId = await window.electronAPI.startRecording(title);
+      if (meetingId) {
+        currentMeetingId = meetingId;
+        isRecording = true;
+        recordingStartTime = Date.now();
+        updateRecordingUI();
+        startRecordingTimer();
+        await loadMeetings();
+        await selectMeeting(meetingId);
+      }
+    }
+
+    // Stop recording
+    async function stopRecording() {
+      await window.electronAPI.stopRecording();
+      isRecording = false;
+      recordingStartTime = null;
+      updateRecordingUI();
+      stopRecordingTimer();
+      stopAudioCapture();
+      await loadMeetings();
+      if (currentMeetingId) {
+        await selectMeeting(currentMeetingId);
+      }
+    }
+
+    // Update recording UI
+    function updateRecordingUI() {
+      const btn = document.getElementById('recordBtn');
+      const icon = document.getElementById('recordIcon');
+      const text = document.getElementById('recordText');
+      const banner = document.getElementById('recordingBanner');
+
+      if (isRecording) {
+        btn.classList.add('btn-danger');
+        btn.classList.remove('btn-primary');
+        icon.textContent = '⏹';
+        text.textContent = 'Stop Recording';
+        banner.classList.add('active');
+      } else {
+        btn.classList.remove('btn-danger');
+        btn.classList.add('btn-primary');
+        icon.textContent = '⏺';
+        text.textContent = 'Start Recording';
+        banner.classList.remove('active');
+      }
+    }
+
+    // Recording timer
+    function startRecordingTimer() {
+      recordingTimer = setInterval(() => {
+        if (recordingStartTime) {
+          const elapsed = Date.now() - recordingStartTime;
+          const minutes = Math.floor(elapsed / 60000);
+          const seconds = Math.floor((elapsed % 60000) / 1000);
+          document.getElementById('recordingTime').textContent = 
+            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+      }, 1000);
+    }
+
+    function stopRecordingTimer() {
+      if (recordingTimer) {
+        clearInterval(recordingTimer);
+        recordingTimer = null;
+      }
+    }
+
+    // Audio capture for transcription
+    async function startAudioCapture() {
+      try {
+        // Enable loopback audio
+        await window.electronAPI.enableLoopbackAudio();
+
+        // Get system audio (loopback)
+        const displayStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: true
+        });
+
+        // Remove video tracks
+        displayStream.getVideoTracks().forEach(track => {
+          track.stop();
+          displayStream.removeTrack(track);
+        });
+
+        // Get microphone audio
+        const micStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            sampleRate: 16000
+          }
+        });
+
+        // Disable loopback mode
+        await window.electronAPI.disableLoopbackAudio();
+
+        // Create audio context
+        audioContext = new AudioContext({ sampleRate: 16000 });
+
+        // Create sources
+        const systemSource = audioContext.createMediaStreamSource(displayStream);
+        const micSource = audioContext.createMediaStreamSource(micStream);
+
+        // Create processor for system audio
+        const systemProcessor = audioContext.createScriptProcessor(4096, 1, 1);
+        systemSource.connect(systemProcessor);
+        systemProcessor.connect(audioContext.destination);
+
+        systemProcessor.onaudioprocess = (e) => {
+          const inputData = e.inputBuffer.getChannelData(0);
+          const int16Data = convertFloat32ToInt16(inputData);
+          window.electronAPI.sendAudioChunk(int16Data.buffer, false);
+        };
+
+        // Create processor for mic audio
+        const micProcessor = audioContext.createScriptProcessor(4096, 1, 1);
+        micSource.connect(micProcessor);
+        micProcessor.connect(audioContext.destination);
+
+        micProcessor.onaudioprocess = (e) => {
+          const inputData = e.inputBuffer.getChannelData(0);
+          const int16Data = convertFloat32ToInt16(inputData);
+          window.electronAPI.sendAudioChunk(int16Data.buffer, true);
+        };
+
+        mediaStream = { displayStream, micStream };
+        processor = { systemProcessor, micProcessor };
+
+      } catch (error) {
+        console.error('Failed to start audio capture:', error);
+        alert('Failed to start audio capture. Please check permissions.');
+      }
+    }
+
+    function stopAudioCapture() {
+      if (processor) {
+        processor.systemProcessor?.disconnect();
+        processor.micProcessor?.disconnect();
+        processor = null;
+      }
+
+      if (mediaStream) {
+        mediaStream.displayStream?.getTracks().forEach(t => t.stop());
+        mediaStream.micStream?.getTracks().forEach(t => t.stop());
+        mediaStream = null;
+      }
+
+      if (audioContext) {
+        audioContext.close();
+        audioContext = null;
+      }
+    }
+
+    function convertFloat32ToInt16(buffer) {
+      const l = buffer.length;
+      const result = new Int16Array(l);
+      for (let i = 0; i < l; i++) {
+        result[i] = Math.min(1, Math.max(-1, buffer[i])) * 0x7FFF;
+      }
+      return result;
+    }
+
+    // Check recording status
+    async function checkRecordingStatus() {
+      const status = await window.electronAPI.getRecordingStatus();
+      isRecording = status.isRecording;
+      currentMeetingId = status.currentMeetingId;
+      
+      if (isRecording) {
+        recordingStartTime = Date.now();
+        updateRecordingUI();
+        startRecordingTimer();
+        if (currentMeetingId) {
+          selectMeeting(currentMeetingId);
+        }
+      }
+    }
+
+    // Settings
+    async function openSettings() {
+      const settings = await window.electronAPI.getSettings();
+      document.getElementById('deepgramKey').value = settings.deepgramApiKey || '';
+      document.getElementById('anthropicKey').value = settings.anthropicApiKey || '';
+      document.getElementById('settingsModal').classList.add('active');
+      await checkPermissions();
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsModal').classList.remove('active');
+    }
+
+    async function saveSettings() {
+      const deepgramKey = document.getElementById('deepgramKey').value.trim();
+      const anthropicKey = document.getElementById('anthropicKey').value.trim();
+
+      await window.electronAPI.updateSettings({
+        deepgramApiKey: deepgramKey,
+        anthropicApiKey: anthropicKey
+      });
+
+      closeSettings();
+    }
+
+    async function checkPermissions() {
+      const perms = await window.electronAPI.checkPermissions();
+      const statusEl = document.getElementById('permissionsStatus');
+      
+      let html = '';
+      
+      const micStatus = perms.microphone === 'granted' ? 'success' : 
+                       perms.microphone === 'denied' ? 'error' : 'warning';
+      html += `<div><span class="status-dot ${micStatus}"></span>Microphone: ${perms.microphone}</div>`;
+      
+      const screenStatus = perms.screen === 'granted' ? 'success' : 
+                          perms.screen === 'denied' ? 'error' : 'warning';
+      html += `<div style="margin-top: 6px;"><span class="status-dot ${screenStatus}"></span>Screen Recording: ${perms.screen}</div>`;
+      
+      if (perms.microphone !== 'granted') {
+        html += `<button class="btn btn-secondary" style="margin-top: 12px;" onclick="requestMicPermission()">Request Microphone Access</button>`;
+      }
+      
+      statusEl.innerHTML = html;
+    }
+
+    async function requestMicPermission() {
+      await window.electronAPI.requestMicPermission();
+      await checkPermissions();
+    }
+
+    // Regenerate summary
+    async function regenerateSummary() {
+      if (!currentMeetingId) return;
+      
+      const summaryEl = document.getElementById('summaryText');
+      summaryEl.innerHTML = '<p style="color: var(--text-muted);">Generating summary...</p>';
+      
+      const summary = await window.electronAPI.regenerateSummary(currentMeetingId);
+      
+      if (summary) {
+        summaryEl.innerHTML = formatMarkdown(summary);
+      } else {
+        summaryEl.innerHTML = '<p style="color: var(--text-muted);">Failed to generate summary. Make sure Anthropic API key is set.</p>';
+      }
+    }
+
+    // Meeting detection
+    function showDetectionAlert(appName) {
+      detectedApp = appName;
+      document.getElementById('detectionText').textContent = `${appName} meeting detected`;
+      document.getElementById('detectionAlert').classList.add('active');
+    }
+
+    function dismissDetection() {
+      document.getElementById('detectionAlert').classList.remove('active');
+      detectedApp = null;
+    }
+
+    function startFromDetection() {
+      dismissDetection();
+      startRecording(`${detectedApp} Meeting - ${new Date().toLocaleString()}`);
+    }
+
+    // Event listeners
+    function setupEventListeners() {
+      window.electronAPI.onRecordingStarted((data) => {
+        currentMeetingId = data.meetingId;
+        isRecording = true;
+        recordingStartTime = Date.now();
+        updateRecordingUI();
+        startRecordingTimer();
+        loadMeetings();
+        selectMeeting(data.meetingId);
+      });
+
+      window.electronAPI.onRecordingStopped((data) => {
+        isRecording = false;
+        recordingStartTime = null;
+        updateRecordingUI();
+        stopRecordingTimer();
+        stopAudioCapture();
+        loadMeetings();
+        if (data.meetingId) {
+          selectMeeting(data.meetingId);
+        }
+      });
+
+      window.electronAPI.onTranscriptSegment((segment) => {
+        if (currentMeetingId === segment.meetingId || !segment.meetingId) {
+          addTranscriptSegment(segment);
+        }
+      });
+
+      window.electronAPI.onMeetingDetected((data) => {
+        if (!isRecording) {
+          showDetectionAlert(data.appName);
+        }
+      });
+
+      window.electronAPI.onTranscriptionReady(() => {
+        startAudioCapture();
+      });
+
+      window.electronAPI.onTranscriptionStopped(() => {
+        stopAudioCapture();
+      });
+    }
+
+    // Utility functions
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatMarkdown(text) {
+      // Simple markdown to HTML conversion
+      return text
+        .replace(/## (.*)/g, '<h2>$1</h2>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/^- (.*)/gm, '<li>$1</li>')
+        .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/^(.*)$/gm, function(match) {
+          if (match.startsWith('<')) return match;
+          return `<p>${match}</p>`;
+        })
+        .replace(/<p><\/p>/g, '')
+        .replace(/<p>(<h2>)/g, '$1')
+        .replace(/(<\/h2>)<\/p>/g, '$1')
+        .replace(/<p>(<ul>)/g, '$1')
+        .replace(/(<\/ul>)<\/p>/g, '$1');
+    }
+
+    // Initialize app
+    init();
+  </script>
+</body>
+</html>
